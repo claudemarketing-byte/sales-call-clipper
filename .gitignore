@@ -1,0 +1,10 @@
+.env
+.env.local
+node_modules/
+.DS_Store
+*.mp4
+*.mp3
+*.wav
+public/raw/
+out/
+.cache/
