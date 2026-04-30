@@ -59,7 +59,8 @@ Only process calls from the **last 7 days**.
 - Clean in/out points only — start and end at complete thoughts
 
 4. Cut clips with ffmpeg using LETTERBOX framing (NOT center crop):
-   `-vf 'scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:color=0x111111'`
+   `-c:v libx264 -pix_fmt yuv420p -vf 'scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:color=0x111111'`
+   **Always pin `-pix_fmt yuv420p`** — Zoom/Mac sources can be `yuvj420p` (full-range JPEG YUV), which Dropbox web preview rejects as "corrupted" even though the file is valid.
 
 5. **Surgical editing pass** — for each clip:
    - Read the Whisper segment-level transcript
@@ -77,10 +78,11 @@ Only process calls from the **last 7 days**.
    ```
    Pick the best hook framework for each clip and adapt it.
 
-10. Render with Remotion — MUST pass all props to override defaults:
+10. Render with Remotion — MUST pass all props to override defaults, AND pin pixel format:
     ```
-    npx remotion render CaptionedVideo output.mp4 --props='{"src":"raw/clip-N.mp4","captionSrc":"raw/clip-N.json","broll":[],"durationInFrames":FRAMES,"hookText":"THE HOOK TEXT"}'  --crf=18
+    npx remotion render CaptionedVideo output.mp4 --props='{"src":"raw/clip-N.mp4","captionSrc":"raw/clip-N.json","broll":[],"durationInFrames":FRAMES,"hookText":"THE HOOK TEXT"}' --pixel-format=yuv420p --crf=18
     ```
+    `--pixel-format=yuv420p` is required so Dropbox web preview doesn't show "corrupted" on the captioned clip.
 
 11. Upload captioned clips to Dropbox `/TLDV/ready/` and get preview links
 

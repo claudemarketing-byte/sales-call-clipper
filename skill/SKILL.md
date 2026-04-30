@@ -262,7 +262,7 @@ for clip in clips:
         '-i', '/tmp/sales-clipper/full-call.mp4',
         '-ss', str(start),
         '-t', str(duration),
-        '-c:v', 'libx264', '-c:a', 'aac',
+        '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-c:a', 'aac',
         '-vf', 'scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:color=0x111111',
         f'/tmp/sales-clipper/clips/clip-{cid}.mp4'
     ]
@@ -324,6 +324,7 @@ for clip_file in public/raw/clip-*.mp4; do
     npx remotion render CaptionedVideo \
         "/tmp/sales-clipper/captioned/${CLIP_NAME}-captioned.mp4" \
         --props="{\"src\": \"raw/${CLIP_NAME}.mp4\", \"captionSrc\": \"raw/${CLIP_NAME}.json\", \"broll\": [], \"durationInFrames\": ${DURATION_FRAMES}, \"hookText\": \"${HOOK_TEXT}\"}" \
+        --pixel-format=yuv420p \
         --crf=18
 done
 ```
@@ -619,7 +620,7 @@ https://apprabbit.app.n8n.cloud/webhook/tldv-recording
 ```bash
 ffmpeg -y -i input.mp4 \
     -vf "scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:color=0x111111" \
-    -c:v libx264 -c:a aac output-vertical.mp4
+    -c:v libx264 -pix_fmt yuv420p -c:a aac output-vertical.mp4
 ```
 
 ### Center crop (ONLY use if explicitly asked — e.g. isolating one person's face):
@@ -627,8 +628,10 @@ ffmpeg -y -i input.mp4 \
 ```bash
 ffmpeg -y -i input.mp4 \
     -vf "crop=ih*9/16:ih:(iw-ih*9/16)/2:0,scale=1080:1920" \
-    -c:a aac output-vertical.mp4
+    -c:v libx264 -pix_fmt yuv420p -c:a aac output-vertical.mp4
 ```
+
+> **Pixel format note:** Always pin `-pix_fmt yuv420p` on libx264 outputs. Without it, ffmpeg can pass through `yuvj420p` (JPEG full-range YUV) from a Zoom/HDR source, which Dropbox's web preview rejects as "corrupted" even though the file plays fine. Same goes for Remotion renders (`--pixel-format=yuv420p`).
 
 ---
 
