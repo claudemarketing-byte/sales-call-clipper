@@ -109,7 +109,19 @@ The skill assumes:
 
 Edit those IDs in `skill/SKILL.md` and `scheduled-tasks/poster/SKILL.md` for your accounts.
 
-### 8. n8n workflow (optional — for fully autonomous TLDV → Dropbox)
+### 8. Auto-pull from GitHub (recommended — keeps the Mini in sync)
+
+So skill edits pushed from any machine propagate to the Mini within ~10 min without manual `git pull`:
+
+```bash
+bash scripts/install-auto-pull.sh
+```
+
+Idempotent. Logs changes + failures only (silent on no-op pulls) to `~/.sales-clipper-autopull.log`. To remove: `bash scripts/install-auto-pull.sh --uninstall`.
+
+> macOS Sonoma+ may require Full Disk Access for `/usr/sbin/cron`. If pulls don't fire, check System Settings → Privacy & Security → Full Disk Access.
+
+### 9. n8n workflow (optional — for fully autonomous TLDV → Dropbox)
 
 Workflow ID `i2ggaJEFkSb4XEef` at `apprabbit.app.n8n.cloud` listens for TLDV `meeting.ready` webhooks and uploads to Dropbox. Configure your TLDV account to send webhooks to:
 
