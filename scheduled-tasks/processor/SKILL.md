@@ -19,6 +19,7 @@ The TLDV API key is `TLDV_API_KEY` in `.env`. Auth header is `x-api-key` (not Be
 ```python
 import urllib.request, json, re
 from datetime import datetime, timedelta, timezone
+from email.utils import parsedate_to_datetime
 
 with open('/Users/clawdbot/Documents/ClaudeRabbit/.env') as f:
     env = f.read()
@@ -29,6 +30,21 @@ req = urllib.request.Request('https://pasta.tldv.io/v1alpha1/meetings?page=1&pag
 req.add_header('x-api-key', TLDV_KEY)
 req.add_header('User-Agent', 'Mozilla/5.0')
 meetings = json.loads(urllib.request.urlopen(req).read())['results']
+
+# CRITICAL: TLDV returns happenedAt as JS Date strings, NOT ISO 8601.
+# Format: "Mon May 04 2026 18:00:00 GMT+0000 (Coordinated Universal Time)"
+# datetime.fromisoformat() silently fails and filters out every meeting.
+# Always use this parser:
+def parse_tldv_date(s):
+    if not s: return None
+    s = re.sub(r'\s*\([^)]+\)\s*$', '', s).strip()
+    try:
+        return datetime.strptime(s, '%a %b %d %Y %H:%M:%S GMT%z')
+    except ValueError:
+        try:
+            return parsedate_to_datetime(s)
+        except Exception:
+            return None
 ```
 
 Filter for **sales calls only** — name must contain `<> AppRabbit` or `<>AppRabbit`. Exclude any name containing: `Check-in`, `Onboarding`, `Build`, `Team`, `Internal`, `Interview`. Minimum duration: 600 seconds (10 min).
